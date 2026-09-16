@@ -50,7 +50,7 @@ The active production serving model is **Exp9**, powered by a compact **Global R
 
 ## 2. Active Production Generator (`Pix2PixHDGlobalResNetGenerator` — Exp9)
 
-**File**: [`src/models/pix2pix/generator_hd.py`](file:///c:/Users/soham/Desktop/Soham/InfraNova-AI/src/models/pix2pix/generator_hd.py)  
+**File**: [`src/models/pix2pix/generator_hd.py`](../../src/models/pix2pix/generator_hd.py)  
 **Total Parameters**: **11,369,795** (11.37M — 46.83% parameter reduction vs. legacy baseline)  
 **Input Shape**: `[B, 2, 128, 128]`  
 **Output Shape**: `[B, 3, 128, 128]` (Range $[-1, 1]$ via Tanh)  
@@ -83,7 +83,7 @@ Inspired by the Johnson et al. and Pix2PixHD Global Generator design, this netwo
 
 ## 3. Legacy Generator Baseline (`Pix2PixHDGenerator`)
 
-**File**: [`src/models/pix2pix/generator_hd.py`](file:///c:/Users/soham/Desktop/Soham/InfraNova-AI/src/models/pix2pix/generator_hd.py)  
+**File**: [`src/models/pix2pix/generator_hd.py`](../../src/models/pix2pix/generator_hd.py)  
 **Total Parameters**: **21,382,915** (21.38M)  
 **Input Shape**: `[B, 2, 128, 128]`  
 **Output Shape**: `[B, 3, 128, 128]` (Range $[-1, 1]$ via Tanh)  
@@ -104,7 +104,7 @@ Inspired by the Johnson et al. and Pix2PixHD Global Generator design, this netwo
 
 ## 4. Discriminator Specification (`MultiScaleDiscriminator`)
 
-**File**: [`src/models/pix2pix/discriminator.py`](file:///c:/Users/soham/Desktop/Soham/InfraNova-AI/src/models/pix2pix/discriminator.py)  
+**File**: [`src/models/pix2pix/discriminator.py`](../../src/models/pix2pix/discriminator.py)  
 **Total Parameters**: **5,532,418** (5.53M across 2 scales)  
 **Input Shape**: `[B, 5, 128, 128]` (Concatenation of 2 IR input channels + 3 RGB channels)  
 

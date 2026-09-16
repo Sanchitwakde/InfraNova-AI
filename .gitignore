@@ -139,3 +139,5 @@ docker-compose.override.yml
 archive/
 scratch/
 docs/project/
+
+ssh-key-2026-09-15.key

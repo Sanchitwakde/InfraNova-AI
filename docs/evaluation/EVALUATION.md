@@ -50,7 +50,7 @@ To ensure strict scientific validity and prevent test-set contamination:
 
 ### 2.2. Final Production Promotion: Exp9
 Following the conclusion of the scientific experiment cycle (Exp1 through Exp9), candidate **Exp9** decisively outperformed all configurations on validation and held-out test splits. On 2026-09-12, Exp9 was formally promoted to production:
-- **Active Production Checkpoint**: [`outputs/best/pix2pix_landsat_best.pth`](outputs/best/pix2pix_landsat_best.pth) (SHA-256: `71bbda3f31b85e7e741b26d5ce0ff398a0394c7dd4ef6ff5452f31f7e0400382`)
+- **Active Production Checkpoint**: `outputs/best/pix2pix_landsat_best.pth` (private/local) (SHA-256: `71bbda3f31b85e7e741b26d5ce0ff398a0394c7dd4ef6ff5452f31f7e0400382`)
 - **Archived Baseline Backup**: `outputs/best/pix2pix_landsat_backup_20260912_231938.pth` (SHA-256: `4604d36d07a0fb4c0696a53040c17004084068c51cc745a23f69b76c8baf6aa8`)
 - **Rollback Metadata**: Maintained in `outputs/best/rollback_metadata.json` for verified rollback safety.
 

@@ -14,12 +14,12 @@ Thermal infrared sensors (Landsat 9 TIRS-2) measure terrestrial surface brightne
 
 The active production serving model is **Exp9**:
 
-- **Active Production Checkpoint**: [`outputs/best/pix2pix_landsat_best.pth`](outputs/best/pix2pix_landsat_best.pth)
+- **Active Production Checkpoint**: `outputs/best/pix2pix_landsat_best.pth` (private/local; intentionally excluded from Git)
 - **Checkpoint SHA-256**: `71bbda3f31b85e7e741b26d5ce0ff398a0394c7dd4ef6ff5452f31f7e0400382`
 - **Generator Architecture**: `Pix2PixHDGlobalResNetGenerator`
 - **Active Generator Parameters**: **11,369,795**
 - **Parameter Reduction vs. Legacy**: Reduced by **10,013,443 parameters (46.83%)** compared to the previous 21,383,238-parameter generator.
-- **Rollback Safety**: The previous production checkpoint is preserved at `outputs/best/pix2pix_landsat_backup_20260912_231938.pth` (SHA-256: `4604d36d07a0fb4c0696a53040c17004084068c51cc745a23f69b76c8baf6aa8`), with full provenance recorded in [`outputs/best/rollback_metadata.json`](outputs/best/rollback_metadata.json).
+- **Rollback Safety**: The previous production checkpoint is preserved locally at `outputs/best/pix2pix_landsat_backup_20260912_231938.pth` (SHA-256: `4604d36d07a0fb4c0696a53040c17004084068c51cc745a23f69b76c8baf6aa8`), with provenance recorded in the local `outputs/best/rollback_metadata.json`.
 
 ---
 
@@ -89,14 +89,14 @@ The production architecture employs a **Pix2PixHD-style Global ResNet Generator*
 Across the research cycle, nine hypothesis-driven experiments were executed:
 
 1. **Exp1 — Perceptual Loss Recovery**: Re-enabled VGG-19 perceptual loss ($\lambda_{\text{perc}} = 5.0$) after catastrophic blur with L1-only loss.
-2. **Exp2 — Feature-Matching Ablation**: Set $\lambda_{\text{feat}} = 0.0$, eliminating generator multi-scale intermediate layer matching with no regression.
+2. **Exp2 — Feature-Matching Ablation**: Set $\lambda_{\text{feat}} = 0.0$, disabling feature matching; this experiment was retained as historical evidence but performed worse than Exp1 on the standardized test metrics.
 3. **Exp3 — Chroma Penalty Increase**: Evaluated $\lambda_{\text{chroma}} = 4.0$ to mitigate false spectral casting.
 4. **Exp4 — Reduced Perceptual Weight**: Evaluated $\lambda_{\text{perc}} = 3.0$ for high-frequency detail balance.
 5. **Exp5 — Saturation Loss**: Introduced differentiable optical saturation regularization ($\lambda_{\text{sat}} = 0.05$) to eliminate low-saturation wash.
 6. **Exp6 — BCE $\to$ LSGAN Transition**: Replaced binary cross-entropy with Least Squares GAN loss to stabilize adversarial training dynamics.
 7. **Exp7 — LSGAN + Saturation Loss**: Unified LSGAN objective with saturation regularizer ($\lambda_{\text{sat}} = 0.05$).
 8. **Exp8 — Increased Saturation Penalty**: Evaluated $\lambda_{\text{sat}} = 0.10$ (over-saturated vegetation textures).
-9. **Exp9 — Global ResNet Generator**: Replaced multi-scale U-Net with compact Global ResNet generator ($11.37\text{M}$ params, `gan_mode = lsgan`, `lambda_sat = 0.05`), achieving state-of-the-art results across structural, pixel, and spectral metrics.
+9. **Exp9 — Global ResNet Generator**: Replaced multi-scale U-Net with compact Global ResNet generator ($11.37\text{M}$ params, `gan_mode = lsgan`, `lambda_sat = 0.05`), selected as the production candidate based on validation results and subsequent held-out evaluation.
 
 **Conclusion**: **Exp9** proved the strongest candidate across the research cycle and was promoted to production.
 
@@ -175,7 +175,7 @@ Band 10 + Band 11 Dual Thermal Input
 ## 🔌 API & Application Services
 
 ### FastAPI Backend (`api/`)
-- **Lifecycle**: The production model is loaded once into memory on application startup.
+- **Lifecycle**: The production model is lazy-loaded on the first request that needs inference and then reused as a singleton.
 - **Header**: All `/colorize` responses include the telemetry header `X-Model: pix2pix-landsat-exp9-resnet`.
 - **Endpoints**:
   - `GET  /health` — Service readiness, model status, and compute device
@@ -219,6 +219,8 @@ InfraNova-AI/
 
 ## ⚡ Quick Start
 
+The commands below describe the current local-development workflow. The repository's latest recorded regression validation is 85 passing tests; run the suite locally to reproduce it.
+
 ### Option A: macOS & Linux (Bash / Zsh)
 
 #### 1. Prerequisites & System Packages
@@ -247,7 +249,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-#### 3. Run Test Suite (85 Tests)
+#### 3. Run Test Suite
 
 ```bash
 pytest tests/ -v
@@ -296,7 +298,7 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-#### 3. Run Test Suite (85 Tests)
+#### 3. Run Test Suite
 
 ```cmd
 pytest tests/ -v
@@ -339,7 +341,7 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-#### 2. Run Test Suite (85 Tests)
+#### 2. Run Test Suite
 
 ```powershell
 pytest tests/ -v
@@ -371,6 +373,18 @@ The web interface is served at `http://localhost:5173`, with interactive OpenAPI
 
 ---
 
+## ☁️ Free Oracle Cloud Deployment
+
+The intended hosting target is Oracle Cloud Infrastructure (OCI) Always Free using `VM.Standard.A1.Flex`. The current target is **2 OCPUs, 12 GB RAM, Ubuntu 24.04 aarch64, and a single 47 GB+ boot volume**. Oracle documents this A1 allocation as Always Free and states that an Always Free tenancy can allocate up to 2 OCPUs and 12 GB memory across A1 instances in the home region.
+
+This project is deliberately configured to keep the application process behind a reverse proxy. Docker binds the application to `127.0.0.1:8000`; public traffic should reach the reverse proxy on ports 80/443. The private Exp9 checkpoint is transferred to the VM separately and mounted read-only. The Docker image does not contain the checkpoint.
+
+Use the dedicated deployment runbook:
+
+[`docs/deployment/DEPLOYMENT.md`](docs/deployment/DEPLOYMENT.md)
+
+For an OCI capacity error, Oracle recommends changing availability domain/fault-domain placement or retrying later. Do not change the account to a paid tier merely to bypass a temporary capacity shortage.
+
 ## 📖 Documentation Directory
 
 - **Current Project Status**: [`docs/project/CURRENT_STATUS.md`](docs/project/CURRENT_STATUS.md)
@@ -388,7 +402,9 @@ Research cycle: COMPLETE
 Model selection: COMPLETE
 Production promotion: COMPLETE
 Production model: Exp9
-Deployment validation: COMPLETE
+Deployment hardening: COMPLETE
+Live host deployment: IN PROGRESS
+Docker build/runtime in the development environment: NOT LOCALLY EXECUTED
 Long-training study: COMPLETE
 ```
 
