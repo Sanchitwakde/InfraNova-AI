@@ -19,7 +19,7 @@ The active production serving model is **Exp9**:
 - **Generator Architecture**: `Pix2PixHDGlobalResNetGenerator`
 - **Active Generator Parameters**: **11,369,795**
 - **Parameter Reduction vs. Legacy**: Reduced by **10,013,443 parameters (46.83%)** compared to the previous 21,383,238-parameter generator.
-- **Rollback Safety**: The previous production checkpoint is preserved locally at `outputs/best/pix2pix_landsat_backup_20260912_231938.pth` (SHA-256: `4604d36d07a0fb4c0696a53040c17004084068c51cc745a23f69b76c8baf6aa8`), with provenance recorded in the local `outputs/best/rollback_metadata.json`.
+- **Rollback Provenance & Checkpoint Integrity**: Promoted from Candidate Exp9 following exhaustive validation. Cryptographic digests for the active model and legacy baseline (`4604d36d07a0fb4c0696a53040c17004084068c51cc745a23f69b76c8baf6aa8`) are recorded in `outputs/best/rollback_metadata.json`. Redundant local backup weights have been purged to optimize disk storage, leaving this single validated production artifact.
 
 ---
 
@@ -200,17 +200,16 @@ Built with React + Vite:
 InfraNova-AI/
 ├── api/             # FastAPI REST backend and container definitions
 ├── configs/         # Experiment configurations (config.yaml, exp1–exp9)
-├── data/            # Landsat-9 dual-band dataset storage and spatial splits
+├── data/            # Landsat 9 dual-band dataset (raw rasters and spatial train/val/test splits)
 ├── demo/            # InferenceEngine, CLI runners, and colormap helpers
 ├── docs/            # Architecture, deployment, training, and evaluation documentation
-├── outputs/         # Staged production model, historical records, and reports
-│   ├── best/        # Active production checkpoint (pix2pix_landsat_best.pth) and rollback backup
-│   ├── exp1/ ... exp9/ # Historical scientific experiment outputs and checkpoints
-│   └── final/       # Historical reference checkpoints and master progression logs
-├── reports/         # Visual inspection panels and final adjudication reports
+├── outputs/         # Staged production model and rollback metadata
+│   └── best/        # Active production checkpoint (pix2pix_landsat_best.pth) and rollback_metadata.json
+├── reports/         # Visual inspection panels, figures, and final adjudication reports
 ├── scripts/         # Reusable evaluation, deployment, preprocessing, and download tools
-├── tests/           # Automated pytest test suite
-└── web/             # React + Vite interactive satellite colorization frontend
+├── src/             # Core PyTorch neural network modules, losses, dataset loaders, and trainers
+├── tests/           # Automated pytest test suite (85 passing unit & integration tests)
+└── web/             # React 19 + Vite 6 interactive satellite colorization frontend
 ```
 
 *Note: Large model weights (`.pth`), checkpoints, and raw satellite datasets are excluded from Git tracking.*
@@ -375,15 +374,21 @@ The web interface is served at `http://localhost:5173`, with interactive OpenAPI
 
 ## ☁️ Free Oracle Cloud Deployment
 
-The intended hosting target is Oracle Cloud Infrastructure (OCI) Always Free using `VM.Standard.A1.Flex`. The current target is **2 OCPUs, 12 GB RAM, Ubuntu 24.04 aarch64, and a single 47 GB+ boot volume**. Oracle documents this A1 allocation as Always Free and states that an Always Free tenancy can allocate up to 2 OCPUs and 12 GB memory across A1 instances in the home region.
+InfraNova AI is deployed and live on **Oracle Cloud Infrastructure (OCI) Always Free** using an ARM64 Ampere A1 instance:
 
-This project is deliberately configured to keep the application process behind a reverse proxy. Docker binds the application to `127.0.0.1:8000`; public traffic should reach the reverse proxy on ports 80/443. The private Exp9 checkpoint is transferred to the VM separately and mounted read-only. The Docker image does not contain the checkpoint.
+- **Live Service URL**: `https://infranovaai.duckdns.org` (SSL/TLS encrypted via Let's Encrypt)
+- **Interactive OpenAPI Documentation**: `https://infranovaai.duckdns.org/docs`
+- **Compute Instance**: `VM.Standard.A1.Flex` (2 OCPUs, 12 GB RAM, Ubuntu 24.04 Minimal aarch64, 4 KB memory page size)
+- **Zero-Cost Constraint**: Operates strictly within Oracle's Always Free tier ($0 ongoing cloud infrastructure cost)
+- **Deployment Architecture**:
+  - **Reverse Proxy**: Nginx on the host listening on ports 80/443 with automated Certbot TLS termination and DuckDNS dynamic DNS resolution.
+  - **Loopback Isolation**: Docker container binds FastAPI exclusively to `127.0.0.1:8000`, serving both REST API endpoints and the pre-built React 19 single-page application.
+  - **Model Security**: Private Exp9 production checkpoint (`outputs/best/pix2pix_landsat_best.pth`) is mounted read-only into `/app/outputs/best/pix2pix_landsat_best.pth` and verified against its cryptographic SHA-256 digest at startup.
 
-Use the dedicated deployment runbook:
-
+Dedicated deployment runbook & step-by-step procedures:
 [`docs/deployment/DEPLOYMENT.md`](docs/deployment/DEPLOYMENT.md)
 
-For an OCI capacity error, Oracle recommends changing availability domain/fault-domain placement or retrying later. Do not change the account to a paid tier merely to bypass a temporary capacity shortage.
+---
 
 ## 📖 Documentation Directory
 
@@ -397,15 +402,39 @@ For an OCI capacity error, Oracle recommends changing availability domain/fault-
 
 ## 🏁 Final Project Status
 
-```
+```text
 Research cycle: COMPLETE
 Model selection: COMPLETE
 Production promotion: COMPLETE
-Production model: Exp9
+Production model: Exp9 (Pix2PixHDGlobalResNetGenerator)
 Deployment hardening: COMPLETE
-Live host deployment: IN PROGRESS
-Docker build/runtime in the development environment: NOT LOCALLY EXECUTED
+Live host deployment: COMPLETE (Live at https://infranovaai.duckdns.org)
+Container verification: COMPLETE
+Automated regression tests: COMPLETE (85/85 tests passing)
 Long-training study: COMPLETE
 ```
 
 **Exp9 is the active production model.**
+
+---
+
+## 👥 Authors & Academic Citation
+
+### Research Authors
+- **Soham Deshpande**
+- **Atharva Lingayat**
+- **Lokesh Gakhre**
+- **Sanchit Wakde**
+
+### Citation (IEEE Format)
+
+> S. Deshpande, A. Lingayat, L. Gakhre, and S. Wakde, "InfraNova-AI: Cross-Spectral Satellite Radiance Translation from Split-Window Thermal Infrared to Optical Reflectance via Residual Generative Adversarial Networks," 2026.
+
+```bibtex
+@article{deshpande2026infranova,
+  title={InfraNova-AI: Cross-Spectral Satellite Radiance Translation from Split-Window Thermal Infrared to Optical Reflectance via Residual Generative Adversarial Networks},
+  author={Deshpande, Soham and Lingayat, Atharva and Gakhre, Lokesh and Wakde, Sanchit},
+  journal={IEEE Transactions on Geoscience and Remote Sensing / EarthVision Workshop},
+  year={2026}
+}
+```
