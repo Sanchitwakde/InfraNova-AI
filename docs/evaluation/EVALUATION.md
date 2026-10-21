@@ -10,28 +10,28 @@
 
 ### 1.1. Structural Similarity Index (SSIM)
 Evaluates luminance, contrast, and structural preservation:
-$$\text{SSIM}(x, y) = \frac{(2\mu_x\mu_y + C_1)(2\sigma_{xy} + C_2)}{(\mu_x^2 + \mu_y^2 + C_1)(\sigma_x^2 + \sigma_y^2 + C_2)}$$
-*Where $C_1 = 0.01^2, C_2 = 0.03^2$. Higher is better ($1.0$ = identical).*
+`SSIM(x, y) = ((2·μ_x·μ_y + C₁) · (2·σ_xy + C₂)) / ((μ_x² + μ_y² + C₁) · (σ_x² + σ_y² + C₂))`  
+*Where C₁ = 0.01², C₂ = 0.03². Higher is better (1.0 = identical).*
 
 ### 1.2. Peak Signal-to-Noise Ratio (PSNR)
 Measures pixel-level reconstruction fidelity in decibels:
-$$\text{PSNR} = 10 \log_{10}\left(\frac{\text{MAX}_I^2}{\text{MSE}}\right)$$
-*Where $\text{MAX}_I = 1.0$ on normalized $[0, 1]$ images. Higher is better.*
+`PSNR = 10 · log10(MAX_I² / MSE)`  
+*Where MAX_I = 1.0 on normalized [0, 1] images. Higher is better.*
 
 ### 1.3. Spectral Angle Mapper (SAM)
 Computes the mean spectral vector angle across pixels in radians:
-$$\text{SAM}(x, y) = \frac{1}{N}\sum_{i=1}^N \arccos\left(\frac{x_i \cdot y_i}{\|x_i\|_2 \|y_i\|_2}\right)$$
-*Lower is better ($0.0$ = identical spectral angle).*
+`SAM(x, y) = (1/N) · Σ arccos((x_i · y_i) / (||x_i||₂ · ||y_i||₂))`  
+*Lower is better (0.0 = identical spectral angle).*
 
-### 1.4. CIE $\Delta E^*_{ab}$ Perceptual Color Difference
-Approximates perceptual human color sensitivity in $L^*a^*b^*$ space:
-$$\Delta E^*_{ab} = \sqrt{(\Delta L^*)^2 + (\Delta a^*)^2 + (\Delta b^*)^2}$$
+### 1.4. CIE ΔE*ab Perceptual Color Difference
+Approximates perceptual human color sensitivity in L*a*b* space:
+`ΔE*ab = √((ΔL*)² + (Δa*)² + (Δb*)²)`  
 *Lower is better.*
 
 ### 1.5. Optical Saturation Ratio
 Measures whether synthesized images suffer from desaturation collapse:
-$$\text{Ratio}_{\text{sat}} = \frac{\mathbb{E}[\sigma_{\text{RGB}}(\hat{y})]}{\mathbb{E}[\sigma_{\text{RGB}}(y)]}$$
-*Ideal target is $1.0$. Values $<1.0$ indicate desaturation; values $>1.0$ indicate oversaturation.*
+`Ratio_sat = E[σ_RGB(y_pred)] / E[σ_RGB(y_true)]`  
+*Ideal target is 1.0. Values < 1.0 indicate desaturation; values > 1.0 indicate oversaturation.*
 
 ### 1.6. Color Histogram Wasserstein Distance
 Evaluates global RGB tonal distribution alignment via 64-bin chi-squared distance across color channels.
@@ -44,8 +44,8 @@ Evaluates global RGB tonal distribution alignment via 64-bin chi-squared distanc
 To ensure strict scientific validity and prevent test-set contamination:
 1. Candidate checkpoints from the 250-epoch dual-band run were evaluated on the **1,432-sample validation split** (`data/landsat9_b10_b11/splits/val/`).
 2. Candidates were ranked using a multi-metric composite optimization heuristic defined *a priori*:
-   $$\text{Score}_{\text{val}} = (10.0 \cdot \text{SSIM}_{\text{val}}) + (0.5 \cdot \text{PSNR}_{\text{val}}) - (0.1 \cdot \text{CIE }\Delta E^*_{ab}) - (2.0 \cdot \text{SAM}_{\text{val}})$$
-   *Subject to the optical saturation constraint: $|\text{SatRatio} - 1.0| \le 0.20$.*
+   `Score_val = (10.0 · SSIM_val) + (0.5 · PSNR_val) - (0.1 · CIE_ΔE*ab) - (2.0 · SAM_val)`  
+   *Subject to the optical saturation constraint: |SatRatio − 1.0| ≤ 0.20.*
 3. **`best_ssim.pth`** (saved at **Epoch 223**, SHA256: `4604d36d07a0fb4c...8baf6aa8`) achieved the top initial composite score (**5.741**, Val SSIM: 0.3257, Val PSNR: 11.599 dB) and served as the legacy baseline.
 
 ### 2.2. Final Production Promotion: Exp9
@@ -62,15 +62,15 @@ To evaluate architectural and loss advancements across iterations, all major can
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 | **Generator Architecture** | Custom U-Net + Local | Custom U-Net + Local | Custom U-Net + Local | Custom U-Net + Local | **Global ResNet (9 Blocks)** | — |
 | **Generator Parameters** | 21,383,238 | 21,383,238 | 21,383,238 | 21,383,238 | **11,369,795** | **-46.83% (-10.01M)** |
-| **PSNR (dB)** $\uparrow$ | 11.714 dB | 12.786 dB | 12.948 dB | 12.926 dB | **13.745 dB** | **+2.031 dB** |
-| **SSIM** $\uparrow$ | 0.3254 | 0.3054 | 0.3157 | 0.3178 | **0.4502** | **+38.3% (+0.1248)** |
-| **MAE** $\downarrow$ | 0.2144 | 0.1993 | 0.1950 | 0.1918 | **0.1723** | **-19.6%** |
-| **RMSE** $\downarrow$ | 0.2752 | 0.2467 | 0.2436 | 0.2411 | **0.2217** | **-19.5%** |
-| **SAM (rad / deg)** $\downarrow$ | 0.2187 ($12.53^\circ$) | 0.1962 ($11.24^\circ$) | 0.2012 ($11.53^\circ$) | 0.2013 ($11.53^\circ$) | **0.1968 ($11.28^\circ$)** | **-10.0% (-1.25°)** |
-| **CIE Lab $\Delta E$** $\downarrow$ | 27.235 | 24.686 | 24.437 | 24.243 | **22.571** | **-17.1%** |
+| **PSNR (dB)** ↑ | 11.714 dB | 12.786 dB | 12.948 dB | 12.926 dB | **13.745 dB** | **+2.031 dB** |
+| **SSIM** ↑ | 0.3254 | 0.3054 | 0.3157 | 0.3178 | **0.4502** | **+38.3% (+0.1248)** |
+| **MAE** ↓ | 0.2144 | 0.1993 | 0.1950 | 0.1918 | **0.1723** | **-19.6%** |
+| **RMSE** ↓ | 0.2752 | 0.2467 | 0.2436 | 0.2411 | **0.2217** | **-19.5%** |
+| **SAM (rad / deg)** ↓ | 0.2187 (12.53°) | 0.1962 (11.24°) | 0.2012 (11.53°) | 0.2013 (11.53°) | **0.1968 (11.28°)** | **-10.0% (-1.25°)** |
+| **CIE Lab ΔE** ↓ | 27.235 | 24.686 | 24.437 | 24.243 | **22.571** | **-17.1%** |
 | **Saturation Ratio** | 1.1993 | 0.5837 | 0.9310 | 0.8706 | **0.9340** | **Natural Fidelity** |
-| **Saturation Deviation** $\downarrow$ | 0.1993 | 0.4163 | 0.0690 | 0.1294 | **0.0660** | **-66.9% Sat Error** |
-| **Histogram Distance** $\downarrow$ | **0.3572** | 0.5479 | 0.5862 | 0.5886 | 0.4607 | Trade-off (+0.1035) |
+| **Saturation Deviation** ↓ | 0.1993 | 0.4163 | 0.0690 | 0.1294 | **0.0660** | **-66.9% Sat Error** |
+| **Histogram Distance** ↓ | **0.3572** | 0.5479 | 0.5862 | 0.5886 | 0.4607 | Trade-off (+0.1035) |
 
 ---
 
@@ -89,4 +89,4 @@ Downstream feature and infrastructure utility is benchmarked using an off-the-sh
 ### Key Findings
 1. **Recall Surge**: Exp9 dramatically increases detection recall (+42.1% relative gain: 54 true positives vs 38 in Production and 33 in Exp7), driven by sharper, hallucination-free boundary reconstruction.
 2. **Net F1 Superiority**: Despite generating more candidates, Exp9 delivers the highest overall F1 score across all experiments (**0.3711 @ 0.25**, **0.3643 @ 0.50**), a +24.0% to +28.5% gain over Production.
-3. **Geometric Precision**: All matched detections retain a mean IoU of $\approx 0.9980$, confirming precise spatial co-registration.
+3. **Geometric Precision**: All matched detections retain a mean IoU of ≈ 0.9980, confirming precise spatial co-registration.

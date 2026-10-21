@@ -9,8 +9,7 @@
 ## 1. Multi-Term Loss Objective
 
 The GAN objective is minimized via two alternating Adam optimizers:
-
-$$\mathcal{L}_{\text{total}} = \lambda_{\text{adv}}\mathcal{L}_{\text{adv}} + \lambda_{L1}\mathcal{L}_{L1} + \lambda_{\text{perc}}\mathcal{L}_{\text{perc}} + \lambda_{\text{ssim}}\mathcal{L}_{\text{ssim}} + \lambda_{\text{chroma}}\mathcal{L}_{\text{chroma}} + \lambda_{\text{feat}}\mathcal{L}_{\text{feat}} + \lambda_{\text{sat}}\mathcal{L}_{\text{sat}}$$
+`L_total = λ_adv·L_adv + λ_L1·L_L1 + λ_perc·L_perc + λ_ssim·L_ssim + λ_chroma·L_chroma + λ_feat·L_feat + λ_sat·L_sat`
 
 ### Hyperparameter Configurations:
 
@@ -18,23 +17,24 @@ $$\mathcal{L}_{\text{total}} = \lambda_{\text{adv}}\mathcal{L}_{\text{adv}} + \l
 | :--- | :---: | :---: |
 | **Generator Architecture** | `Pix2PixHDGenerator` (21.38M) | `Pix2PixHDGlobalResNetGenerator` (11.37M) |
 | **Adversarial Objective** | BCE (`gan_mode: bce`) | LSGAN (`gan_mode: lsgan`, MSE) |
-| $\lambda_{\text{adv}}$ | 1.0 | 1.0 |
-| $\lambda_{L1}$ | 10.0 | 10.0 |
-| $\lambda_{\text{perc}}$ (VGG-19) | 10.0 | **5.0** (Prevents over-smoothing) |
-| $\lambda_{\text{ssim}}$ | 5.0 | 5.0 |
-| $\lambda_{\text{chroma}}$ | 2.0 | 2.0 |
-| $\lambda_{\text{feat}}$ | 5.0 | **0.0** (Ablated in Exp2; omitted in Exp9) |
-| $\lambda_{\text{sat}}$ (CIE Lab Saturation) | 0.0 | **0.05** ($\varepsilon = 10^{-6}$ for stable gradients) |
+| λ_adv | 1.0 | 1.0 |
+| λ_L1 | 10.0 | 10.0 |
+| λ_perc (VGG-19) | 10.0 | **5.0** (Prevents over-smoothing) |
+| λ_ssim | 5.0 | 5.0 |
+| λ_chroma | 2.0 | 2.0 |
+| λ_feat | 5.0 | **0.0** (Ablated in Exp2; omitted in Exp9) |
+| λ_sat (CIE Lab Saturation) | 0.0 | **0.05** (ε = 10⁻⁶ for stable gradients) |
 
 ---
 
 ## 2. Optimizer & Learning Rate Schedule
 
-- **Optimizers**: Adam for both Generator and Discriminators ($\beta_1 = 0.5, \beta_2 = 0.999$, initial $\text{lr} = 2\times 10^{-4}$).
+- **Optimizers**: Adam for both Generator and Discriminators (β₁ = 0.5, β₂ = 0.999, initial lr = 2 × 10⁻⁴).
 - **Linear Learning Rate Annealing**:
-  - Epochs 1–50 (or 1–100): Constant $\text{lr} = 2\times 10^{-4}$.
-  - Subsequent epochs: Linear decay down to $\eta_{\text{min}} = 1\times 10^{-6}$:
-    $$\text{lr}(e) = \eta_{\text{min}} + (\text{lr}_{\text{base}} - \eta_{\text{min}})\left(1 - \frac{e - e_{\text{decay}}}{e_{\text{total}} - e_{\text{decay}}}\right)$$
+  - Epochs 1–50 (or 1–100): Constant lr = 2 × 10⁻⁴.
+  - Subsequent epochs: Linear decay down to η_min = 1 × 10⁻⁶:
+    `lr(e) = η_min + (lr_base - η_min) · (1 - (e - e_decay) / (e_total - e_decay))`
+
 - **Early Stopping**: Early stopping monitor watches validation SSIM with patience (`patience: 25`). In Exp9, peak SSIM occurred at epoch 46, and early stopping cleanly terminated training at epoch 71.
 - **Long-Training Study**: Expanding training budget to 250 epochs (patience 100) on Tesla T4 resulted in 84 non-improving epochs post-epoch 46, causing spectral overfitting and saturation inflation. Further epoch increases are exhausted; Exp9 epoch 46 is the finalized production model.
 

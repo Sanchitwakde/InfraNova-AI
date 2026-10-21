@@ -17,8 +17,8 @@ InfraNova AI provides two complementary inference engines:
 - **Features**:
   - Robust 2nd/98th percentile stretching with flat-image protection.
   - Test-Time Augmentation (TTA) with 4 geometric transforms (Identity, H-flip, V-flip, 180° rotation).
-  - Confidence scoring derived from inter-augmentation variance:
-    $$\text{Confidence} = \exp(-8.0 \cdot \bar{\sigma}_{\text{TTA}})$$
+  - Confidence scoring derived from inter-augmentation variance: `Confidence = exp(-8.0 · σ_TTA)`.
+
   - 3-band GIS GeoTIFF export (saving in B, G, R layer order for standard GIS visualization).
 
 ### 2. `InferenceEngine` (`demo/inference.py`)
@@ -26,7 +26,7 @@ InfraNova AI provides two complementary inference engines:
 - **Features**:
   - Fast in-memory single-image and batch prediction supporting both PIL and NumPy inputs.
   - Strict checkpoint loading: validates architecture metadata and tensor shapes before constructing the generator. The active production checkpoint uses `Pix2PixHDGlobalResNetGenerator` (Exp9, 11.37M parameters).
-  - TTA ensemble inference with automated denormalization and RGB clipping to $[0, 255]$.
+  - TTA ensemble inference with automated denormalization and RGB clipping to [0, 255].
 
 ---
 

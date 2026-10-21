@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary & Final Research Story
 
-InfraNova-AI addresses the challenge of translating dual-band thermal infrared satellite imagery (Landsat 9 Band 10 [$100\,\text{m}$] and Band 11 [$100\,\text{m}$]) into high-fidelity true-color optical RGB imagery ($100\,\text{m}$) capable of supporting downstream automated computer vision (YOLOv8 object detection).
+InfraNova-AI addresses the challenge of translating dual-band thermal infrared satellite imagery (Landsat 9 Band 10 [100m] and Band 11 [100m]) into high-fidelity true-color optical RGB imagery (100m) capable of supporting downstream automated computer vision (YOLOv8 object detection).
 
 The research campaign progressed through 10 systematic phases:
 
@@ -34,20 +34,20 @@ The research campaign progressed through 10 systematic phases:
 
 All evaluations conducted under identical standardized protocol on the 1,259-sample held-out test split (`data/landsat9_b10_b11/splits/test/`):
 
-| Exp | Scientific Change | Architecture | Major Loss Config | Best Val Metric | Test PSNR (dB) | Test SSIM | MAE | RMSE | SAM (deg) | Lab $\Delta E$ | Sat Ratio (Dev) | Hist Dist | YOLO F1@0.25 | YOLO F1@0.50 | Status | Conclusion |
+| Exp | Scientific Change | Architecture | Major Loss Config | Best Val Metric | Test PSNR (dB) | Test SSIM | MAE | RMSE | SAM (deg) | Lab ΔE | Sat Ratio (Dev) | Hist Dist | YOLO F1@0.25 | YOLO F1@0.50 | Status | Conclusion |
 | :--- | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
-| **Legacy Prod** | Legacy Baseline (Backup) | Custom U-Net (21.38M) | BCE, $\lambda_{\text{perc}}=10, \lambda_{\text{chroma}}=2$ | Val SSIM: 0.2522 | 11.7138 | 0.3254 | 0.2144 | 0.2752 | 12.53° | 27.2355 | 1.1993 (+0.199) | 0.3572 | 0.2992 | 0.2835 | Archived Baseline | Previous serving model; preserved for reference. |
-| **Exp1** | Perceptual loss recovery | Custom U-Net (21.38M) | BCE, $\lambda_{\text{perc}}=5, \lambda_{\text{feat}}=5, \lambda_{\text{chroma}}=2$ | Val SSIM: 0.2963 (Ep 24) | 12.4974 | 0.3183 | 0.2037 | 0.2551 | 12.11° | 25.4694 | 1.1021 (+0.102) | 0.1049 | 0.3256 | 0.2946 | Positive (Recovery) | Restored VGG stability; established loss baseline. |
-| **Exp2** | Feature matching ablation | Custom U-Net (21.38M) | BCE, $\lambda_{\text{perc}}=5, \lambda_{\text{feat}}=0, \lambda_{\text{chroma}}=2$ | Val SSIM: 0.2959 (Ep 24) | 12.3495 | 0.3115 | 0.2088 | 0.2594 | 12.13° | 25.9906 | 1.2126 (+0.213) | 0.1051 | 0.3116 | 0.2899 | Neutral | $\lambda_{\text{feat}}$ is non-essential; eliminated without loss. |
-| **Exp3** | Chroma penalty doubled | Custom U-Net (21.38M) | BCE, $\lambda_{\text{perc}}=5, \lambda_{\text{chroma}}=4, \lambda_{\text{feat}}=0$ | Val SSIM: 0.2979 (Ep 45) | 12.1331 | 0.3119 | 0.2151 | 0.2690 | 11.44° | 26.2695 | 0.6904 (-0.310) | 0.1048 | 0.3259 | 0.3185 | Rejected | Caused severe desaturation; raw chroma loss flawed. |
-| **Exp4** | Perceptual loss reduced | Custom U-Net (21.38M) | BCE, $\lambda_{\text{perc}}=3, \lambda_{\text{chroma}}=2, \lambda_{\text{feat}}=0$ | Val SSIM: 0.2894 (Ep 14) | *N/A* | *N/A* | *N/A* | *N/A* | *N/A* | *N/A* | *N/A* | *N/A* | *N/A* | *N/A* | Rejected | Early stopped ep 39; degraded validation SSIM. |
-| **Exp5** | Saturation loss introduced | Custom U-Net (21.38M) | BCE, $\lambda_{\text{sat}}=0.05, \lambda_{\text{perc}}=5, \lambda_{\text{chroma}}=2$ | Val SSIM: 0.2971 (Ep 40) | 12.3543 | 0.3160 | 0.2055 | 0.2602 | 12.56° | 25.9216 | 1.0695 (+0.070) | 0.4406 | *N/A* | *N/A* | Positive | Breakthrough: saturation ratio normalized to 1.07. |
-| **Exp6** | LSGAN objective | Custom U-Net (21.38M) | LSGAN, $\lambda_{\text{sat}}=0.0, \lambda_{\text{perc}}=5, \lambda_{\text{chroma}}=2$ | Val SSIM: 0.2912 (Ep 19) | 12.7856 | 0.3054 | 0.1993 | 0.2467 | 11.24° | 24.6859 | 0.5837 (-0.416) | 0.5479 | 0.3108 | 0.3028 | Neutral | LSGAN stabilized GAN dynamics; lacked saturation. |
-| **Exp7** | LSGAN + Saturation loss | Custom U-Net (21.38M) | LSGAN, $\lambda_{\text{sat}}=0.05, \lambda_{\text{perc}}=5, \lambda_{\text{chroma}}=2$ | Val SSIM: 0.3033 (Ep 70) | 12.9477 | 0.3157 | 0.1950 | 0.2436 | 11.53° | 24.4370 | 0.9310 (-0.069) | 0.5862 | 0.2946 | 0.2857 | Positive | Optimal loss combination; sustained 70-ep training. |
-| **Exp8** | Excess saturation weight | Custom U-Net (21.38M) | LSGAN, $\lambda_{\text{sat}}=0.10, \lambda_{\text{perc}}=5, \lambda_{\text{chroma}}=2$ | Val SSIM: 0.2912 (Ep 19) | 12.7244 | 0.3002 | 0.2005 | 0.2491 | 12.35° | 25.2533 | 1.1263 (+0.126) | 0.5361 | 0.2739 | 0.2739 | Rejected | Oversaturated; collapsed early at epoch 19. |
-| **Long Exp7** | Extended budget (200 ep) | Custom U-Net (21.38M) | LSGAN, $\lambda_{\text{sat}}=0.05$ (Exp7 config) | Val SSIM: 0.3131 (Ep 119) | 12.9263 | 0.3178 | 0.1918 | 0.2411 | 11.53° | 24.2435 | 0.8706 (-0.129) | 0.5886 | 0.3038 | 0.2954 | Training Budget | Marginal +0.002 SSIM; hit U-Net architectural limit. |
-| **Exp9** | **Global ResNet Generator** | **Global ResNet (11.37M)** | **LSGAN, $\lambda_{\text{sat}}=0.05$ (Exp7 config)** | **Val SSIM: 0.3802 (Ep 46)** | **13.7447** | **0.4502** | **0.1723** | **0.2217** | **11.28°** | **22.5706** | **0.9340 (-0.066)** | **0.4607** | **0.3711** | **0.3643** | **Active Production** | **Decisive breakthrough across all primary metrics.** |
-| **Long Exp9** | Extended budget (250 ep) | Global ResNet (11.37M) | LSGAN, $\lambda_{\text{sat}}=0.05$ (Exp9 config) | Val SSIM: 0.3786 (Ep 46) | 13.5838 | 0.4493 | 0.1807 | 0.2265 | 11.76° | 24.1550 | 1.1805 (+0.181) | 0.5058 | 0.3534 | 0.3534 | Training Budget (Rejected) | Budget exhausted; 84 non-improving eps; degraded test metrics. |
+| **Legacy Prod** | Legacy Baseline (Backup) | Custom U-Net (21.38M) | BCE, lambda_perc = 10, lambda_chroma = 2 | Val SSIM: 0.2522 | 11.7138 | 0.3254 | 0.2144 | 0.2752 | 12.53° | 27.2355 | 1.1993 (+0.199) | 0.3572 | 0.2992 | 0.2835 | Archived Baseline | Previous serving model; preserved for reference. |
+| **Exp1** | Perceptual loss recovery | Custom U-Net (21.38M) | BCE, lambda_perc = 5, lambda_feat = 5, lambda_chroma = 2 | Val SSIM: 0.2963 (Ep 24) | 12.4974 | 0.3183 | 0.2037 | 0.2551 | 12.11° | 25.4694 | 1.1021 (+0.102) | 0.1049 | 0.3256 | 0.2946 | Positive (Recovery) | Restored VGG stability; established loss baseline. |
+| **Exp2** | Feature matching ablation | Custom U-Net (21.38M) | BCE, lambda_perc = 5, lambda_feat = 0, lambda_chroma = 2 | Val SSIM: 0.2959 (Ep 24) | 12.3495 | 0.3115 | 0.2088 | 0.2594 | 12.13° | 25.9906 | 1.2126 (+0.213) | 0.1051 | 0.3116 | 0.2899 | Neutral | λ_feat is non-essential; eliminated without loss. |
+| **Exp3** | Chroma penalty doubled | Custom U-Net (21.38M) | BCE, lambda_perc = 5, lambda_chroma = 4, lambda_feat = 0 | Val SSIM: 0.2979 (Ep 45) | 12.1331 | 0.3119 | 0.2151 | 0.2690 | 11.44° | 26.2695 | 0.6904 (-0.310) | 0.1048 | 0.3259 | 0.3185 | Rejected | Caused severe desaturation; raw chroma loss flawed. |
+| **Exp4** | Perceptual loss reduced | Custom U-Net (21.38M) | BCE, lambda_perc = 3, lambda_chroma = 2, lambda_feat = 0 | Val SSIM: 0.2894 (Ep 14) | *N/A* | *N/A* | *N/A* | *N/A* | *N/A* | *N/A* | *N/A* | *N/A* | *N/A* | *N/A* | Rejected | Early stopped ep 39; degraded validation SSIM. |
+| **Exp5** | Saturation loss introduced | Custom U-Net (21.38M) | BCE, lambda_sat = 0.05, lambda_perc = 5, lambda_chroma = 2 | Val SSIM: 0.2971 (Ep 40) | 12.3543 | 0.3160 | 0.2055 | 0.2602 | 12.56° | 25.9216 | 1.0695 (+0.070) | 0.4406 | *N/A* | *N/A* | Positive | Breakthrough: saturation ratio normalized to 1.07. |
+| **Exp6** | LSGAN objective | Custom U-Net (21.38M) | LSGAN, lambda_sat = 0.0, lambda_perc = 5, lambda_chroma = 2 | Val SSIM: 0.2912 (Ep 19) | 12.7856 | 0.3054 | 0.1993 | 0.2467 | 11.24° | 24.6859 | 0.5837 (-0.416) | 0.5479 | 0.3108 | 0.3028 | Neutral | LSGAN stabilized GAN dynamics; lacked saturation. |
+| **Exp7** | LSGAN + Saturation loss | Custom U-Net (21.38M) | LSGAN, lambda_sat = 0.05, lambda_perc = 5, lambda_chroma = 2 | Val SSIM: 0.3033 (Ep 70) | 12.9477 | 0.3157 | 0.1950 | 0.2436 | 11.53° | 24.4370 | 0.9310 (-0.069) | 0.5862 | 0.2946 | 0.2857 | Positive | Optimal loss combination; sustained 70-ep training. |
+| **Exp8** | Excess saturation weight | Custom U-Net (21.38M) | LSGAN, lambda_sat = 0.10, lambda_perc = 5, lambda_chroma = 2 | Val SSIM: 0.2912 (Ep 19) | 12.7244 | 0.3002 | 0.2005 | 0.2491 | 12.35° | 25.2533 | 1.1263 (+0.126) | 0.5361 | 0.2739 | 0.2739 | Rejected | Oversaturated; collapsed early at epoch 19. |
+| **Long Exp7** | Extended budget (200 ep) | Custom U-Net (21.38M) | LSGAN, lambda_sat = 0.05 (Exp7 config) | Val SSIM: 0.3131 (Ep 119) | 12.9263 | 0.3178 | 0.1918 | 0.2411 | 11.53° | 24.2435 | 0.8706 (-0.129) | 0.5886 | 0.3038 | 0.2954 | Training Budget | Marginal +0.002 SSIM; hit U-Net architectural limit. |
+| **Exp9** | **Global ResNet Generator** | **Global ResNet (11.37M)** | **LSGAN, lambda_sat = 0.05 (Exp7 config)** | **Val SSIM: 0.3802 (Ep 46)** | **13.7447** | **0.4502** | **0.1723** | **0.2217** | **11.28°** | **22.5706** | **0.9340 (-0.066)** | **0.4607** | **0.3711** | **0.3643** | **Active Production** | **Decisive breakthrough across all primary metrics.** |
+| **Long Exp9** | Extended budget (250 ep) | Global ResNet (11.37M) | LSGAN, lambda_sat = 0.05 (Exp9 config) | Val SSIM: 0.3786 (Ep 46) | 13.5838 | 0.4493 | 0.1807 | 0.2265 | 11.76° | 24.1550 | 1.1805 (+0.181) | 0.5058 | 0.3534 | 0.3534 | Training Budget (Rejected) | Budget exhausted; 84 non-improving eps; degraded test metrics. |
 
 *Notes:*  
 - *Values marked "N/A" were not evaluated on test set because the candidate was screened out at the validation stage.*  
@@ -59,7 +59,7 @@ All evaluations conducted under identical standardized protocol on the 1,259-sam
 
 ### 3.1. Key Architectural Advantage
 - **Parameter Reduction**: 11,369,795 vs 21,383,238 (**46.83% parameter reduction**, saving 10.01M parameters).
-- **Structure**: 7×7 reflection input conv $\to$ 2 stride-2 downsampling conv stages $\to$ 9 residual blocks at 256 channels ($32\times 32$ spatial resolution) $\to$ 2 stride-2 upsampling transposed conv stages $\to$ 7×7 output conv.
+- **Structure**: 7×7 reflection input conv → 2 stride-2 downsampling conv stages → 9 residual blocks at 256 channels (32×32 spatial resolution) → 2 stride-2 upsampling transposed conv stages → 7×7 output conv.
 - **Inference Latency**: Sub-5ms batch inference on Tesla T4; 100% compatible with existing whole-raster sliding window pipeline.
 
 ### 3.2. Quantitative Comparison
@@ -71,7 +71,7 @@ All evaluations conducted under identical standardized protocol on the 1,259-sam
 | **MAE** | 0.2144 | **0.1723** | -0.0421 | **-19.6%** |
 | **RMSE** | 0.2752 | **0.2217** | -0.0535 | **-19.5%** |
 | **SAM (Spectral Angle)** | 12.53° | **11.28°** | -1.25° | **-10.0%** |
-| **CIE Lab $\Delta E$ Error** | 27.235 | **22.571** | -4.664 | **-17.1%** |
+| **CIE Lab ΔE Error** | 27.235 | **22.571** | -4.664 | **-17.1%** |
 | **Saturation Ratio** | 1.1993 (Oversaturated) | **0.9340 (Balanced)** | -0.2653 | **-66.9% Saturation Error** |
 | **YOLOv8n F1 @ 0.25** | 0.2992 | **0.3711** | +0.0719 | **+24.0%** |
 | **YOLOv8n F1 @ 0.50** | 0.2835 | **0.3643** | +0.0808 | **+28.5%** |

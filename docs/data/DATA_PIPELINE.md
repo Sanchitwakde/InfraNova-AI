@@ -10,11 +10,11 @@
 
 | Band Identifier | Spectral Category | Wavelength Range | Nominal Ground Resolution | Usage in InfraNova AI |
 | :--- | :--- | :---: | :---: | :--- |
-| **SR_B2** | Visible Blue | $0.45\text{--}0.51\,\mu\text{m}$ | 30m | RGB Target (Blue Channel) |
-| **SR_B3** | Visible Green | $0.53\text{--}0.59\,\mu\text{m}$ | 30m | RGB Target (Green Channel) |
-| **SR_B4** | Visible Red | $0.64\text{--}0.67\,\mu\text{m}$ | 30m | RGB Target (Red Channel) |
-| **ST_B10** | Thermal Infrared 1 (TIRS-2) | $10.60\text{--}11.19\,\mu\text{m}$ | 100m | **Primary Input (Channel 0)** |
-| **ST_B11** | Thermal Infrared 2 (TIRS-2) | $11.50\text{--}12.51\,\mu\text{m}$ | 100m | **Secondary Input (Channel 1)** |
+| **SR_B2** | Visible Blue | 0.45–0.51 µm | 30m | RGB Target (Blue Channel) |
+| **SR_B3** | Visible Green | 0.53–0.59 µm | 30m | RGB Target (Green Channel) |
+| **SR_B4** | Visible Red | 0.64–0.67 µm | 30m | RGB Target (Red Channel) |
+| **ST_B10** | Thermal Infrared 1 (TIRS-2) | 10.60–11.19 µm | 100m | **Primary Input (Channel 0)** |
+| **ST_B11** | Thermal Infrared 2 (TIRS-2) | 11.50–12.51 µm | 100m | **Secondary Input (Channel 1)** |
 
 ---
 
@@ -27,15 +27,15 @@ python scripts/preprocessing/process_landsat_patches.py --input-dir data/raw --o
 ```
 
 ### Preprocessing Steps:
-1. **Resampling**: Uses `cv2.INTER_AREA` to align 30m optical and 100m thermal rasters to exact $100\text{m}$ ($128\times 128$) and $200\text{m}$ ($64\times 64$) grids.
-2. **Sliding Window Extraction**: Stride of 32 pixels at $100\text{m}$ resolution (75% spatial overlap).
+1. **Resampling**: Uses `cv2.INTER_AREA` to align 30m optical and 100m thermal rasters to exact 100m (128×128) and 200m (64×64) grids.
+2. **Sliding Window Extraction**: Stride of 32 pixels at 100m resolution (75% spatial overlap).
 3. **Data Quality & Blank Filtering**:
-   - Discards any patch with $>50\%$ zero pixels.
+   - Discards any patch with >50% zero pixels.
    - Discards patches containing any non-finite values (NaN / Inf) in either thermal or optical bands.
 4. **Sample Artifacts Saved**:
-   - `tir_100m.npy`: Float32 array $(128, 128)$ for Band 10.
-   - `tir_b11_100m.npy`: Float32 array $(128, 128)$ for Band 11.
-   - `rgb_100m.npy`: Float32 array $(3, 128, 128)$ for RGB target.
+   - `tir_100m.npy`: Float32 array (128, 128) for Band 10.
+   - `tir_b11_100m.npy`: Float32 array (128, 128) for Band 11.
+   - `rgb_100m.npy`: Float32 array (3, 128, 128) for RGB target.
 
 ---
 
@@ -56,6 +56,6 @@ python scripts/preprocessing/split_patches.py --input-dir data/landsat9_b10_b11/
 1. **Local Percentile Normalization (Default)**:
    - Evaluates 2nd and 98th percentiles per patch.
    - Applied independently to Band 10 and Band 11 to preserve split-window thermal variance.
-   - Normalizes to $[-1, 1]$.
+   - Normalizes to [-1, 1].
 2. **Global Dataset Normalization**:
    - Uses precomputed dataset statistics generated via `python scripts/preprocessing/compute_normalization_stats.py`.

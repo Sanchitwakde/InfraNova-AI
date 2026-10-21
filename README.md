@@ -1,12 +1,12 @@
 # InfraNova AI
 
-**Cross-Spectral Satellite Radiance Translation**: Synthesizing visible optical RGB imagery ($0.43$--$0.68\,\mu\text{m}$) from dual-band thermal infrared radiance (Landsat 9 TIRS-2 Band 10 [$10.60$--$11.19\,\mu\text{m}$] + Band 11 [$11.50$--$12.51\,\mu\text{m}$]) using a compact Global ResNet conditional Generative Adversarial Network (**Pix2PixHD-style LSGAN**).
+**Cross-Spectral Satellite Radiance Translation**: Synthesizing visible optical RGB imagery (0.43–0.68 µm) from dual-band thermal infrared radiance (Landsat 9 TIRS-2 Band 10 [10.60–11.19 µm] + Band 11 [11.50–12.51 µm]) using a compact Global ResNet conditional Generative Adversarial Network (**Pix2PixHD-style LSGAN**).
 
 ---
 
 ### 🔬 Scientific Context & Radiometric Mapping
 
-Thermal infrared sensors (Landsat 9 TIRS-2) measure terrestrial surface brightness temperature and radiated thermal energy ($10.60$--$12.51\,\mu\text{m}$), while optical sensors (Landsat 9 OLI-2) capture reflected solar spectral irradiance ($0.45$--$0.67\,\mu\text{m}$). InfraNova AI learns a cross-spectral mapping across spatially aligned, paired observations to synthesize 3-channel true color optical RGB imagery from 2-channel thermal radiance inputs.
+Thermal infrared sensors (Landsat 9 TIRS-2) measure terrestrial surface brightness temperature and radiated thermal energy (10.60–12.51 µm), while optical sensors (Landsat 9 OLI-2) capture reflected solar spectral irradiance (0.45–0.67 µm). InfraNova AI learns a cross-spectral mapping across spatially aligned, paired observations to synthesize 3-channel true color optical RGB imagery from 2-channel thermal radiance inputs.
 
 ---
 
@@ -71,16 +71,16 @@ The production architecture employs a **Pix2PixHD-style Global ResNet Generator*
 - **Generator (`Pix2PixHDGlobalResNetGenerator`, 11,369,795 params)**:
   - Input: 2 channels (Landsat 9 B10 + B11 thermal radiance)
   - Output: 3 channels (visible optical RGB)
-  - $7\times 7$ reflection-padded input convolution
-  - 2 strided downsampling stages reaching $256$ feature channels at $32\times 32$
+  - 7×7 reflection-padded input convolution
+  - 2 strided downsampling stages reaching 256 feature channels at 32×32
   - 9 residual bottleneck blocks with reflection padding, instance normalization, and ReLU
   - 2 strided upsampling stages with transposed convolutions
-  - $7\times 7$ reflection-padded output convolution with $\text{Tanh}$ activation mapping to $[-1.0, 1.0]$
-- **Discriminator (`MultiScaleDiscriminator`, 5.53M params)**: 2 independent PatchGAN branches operating at $128\times 128$ and $64\times 64$ with `SpectralNorm` on all convolutional layers and no `InstanceNorm` (preserving strict Lipschitz continuity).
+  - 7×7 reflection-padded output convolution with Tanh activation mapping to [-1.0, 1.0]
+- **Discriminator (`MultiScaleDiscriminator`, 5.53M params)**: 2 independent PatchGAN branches operating at 128×128 and 64×64 with `SpectralNorm` on all convolutional layers and no `InstanceNorm` (preserving strict Lipschitz continuity).
 - **Adversarial Formulation**: Least Squares GAN (**LSGAN** MSE loss).
 - **Multi-Term Production Loss Objective**:
-  $$\mathcal{L}_{\text{total}} = 1.0\,\mathcal{L}_{\text{adv}} + 10.0\,\mathcal{L}_{L1} + 5.0\,\mathcal{L}_{\text{perc}} + 5.0\,\mathcal{L}_{\text{ssim}} + 2.0\,\mathcal{L}_{\text{chroma}} + 0.05\,\mathcal{L}_{\text{sat}}$$
-  *(Feature-matching loss is strictly disabled with $\lambda_{\text{feat}} = 0.0$.)*
+  `L_total = 1.0 · L_adv + 10.0 · L_L1 + 5.0 · L_perc + 5.0 · L_ssim + 2.0 · L_chroma + 0.05 · L_sat`
+  *(Feature-matching loss is strictly disabled with `lambda_feat = 0.0`.)*
 
 ---
 
@@ -88,21 +88,21 @@ The production architecture employs a **Pix2PixHD-style Global ResNet Generator*
 
 Across the research cycle, nine hypothesis-driven experiments were executed:
 
-1. **Exp1 — Perceptual Loss Recovery**: Re-enabled VGG-19 perceptual loss ($\lambda_{\text{perc}} = 5.0$) after catastrophic blur with L1-only loss.
-2. **Exp2 — Feature-Matching Ablation**: Set $\lambda_{\text{feat}} = 0.0$, disabling feature matching; this experiment was retained as historical evidence but performed worse than Exp1 on the standardized test metrics.
-3. **Exp3 — Chroma Penalty Increase**: Evaluated $\lambda_{\text{chroma}} = 4.0$ to mitigate false spectral casting.
-4. **Exp4 — Reduced Perceptual Weight**: Evaluated $\lambda_{\text{perc}} = 3.0$ for high-frequency detail balance.
-5. **Exp5 — Saturation Loss**: Introduced differentiable optical saturation regularization ($\lambda_{\text{sat}} = 0.05$) to eliminate low-saturation wash.
-6. **Exp6 — BCE $\to$ LSGAN Transition**: Replaced binary cross-entropy with Least Squares GAN loss to stabilize adversarial training dynamics.
-7. **Exp7 — LSGAN + Saturation Loss**: Unified LSGAN objective with saturation regularizer ($\lambda_{\text{sat}} = 0.05$).
-8. **Exp8 — Increased Saturation Penalty**: Evaluated $\lambda_{\text{sat}} = 0.10$ (over-saturated vegetation textures).
-9. **Exp9 — Global ResNet Generator**: Replaced multi-scale U-Net with compact Global ResNet generator ($11.37\text{M}$ params, `gan_mode = lsgan`, `lambda_sat = 0.05`), selected as the production candidate based on validation results and subsequent held-out evaluation.
+1. **Exp1 — Perceptual Loss Recovery**: Re-enabled VGG-19 perceptual loss (lambda_perc = 5.0) after catastrophic blur with L1-only loss.
+2. **Exp2 — Feature-Matching Ablation**: Set lambda_feat = 0.0, disabling feature matching; this experiment was retained as historical evidence but performed worse than Exp1 on the standardized test metrics.
+3. **Exp3 — Chroma Penalty Increase**: Evaluated lambda_chroma = 4.0 to mitigate false spectral casting.
+4. **Exp4 — Reduced Perceptual Weight**: Evaluated lambda_perc = 3.0 for high-frequency detail balance.
+5. **Exp5 — Saturation Loss**: Introduced differentiable optical saturation regularization (lambda_sat = 0.05) to eliminate low-saturation wash.
+6. **Exp6 — BCE → LSGAN Transition**: Replaced binary cross-entropy with Least Squares GAN loss to stabilize adversarial training dynamics.
+7. **Exp7 — LSGAN + Saturation Loss**: Unified LSGAN objective with saturation regularizer (lambda_sat = 0.05).
+8. **Exp8 — Increased Saturation Penalty**: Evaluated lambda_sat = 0.10 (over-saturated vegetation textures).
+9. **Exp9 — Global ResNet Generator**: Replaced multi-scale U-Net with compact Global ResNet generator (11.37M params, `gan_mode = lsgan`, `lambda_sat = 0.05`), selected as the production candidate based on validation results and subsequent held-out evaluation.
 
 **Conclusion**: **Exp9** proved the strongest candidate across the research cycle and was promoted to production.
 
 ### Training-Budget Study & Conclusion
 
-- **Exp9 Baseline**: Trained with Adam ($	ext{lr}=2\times 10^{-4}, \beta_1=0.5, \beta_2=0.999$, batch size 64, image size 128, local normalization, `lambda_sat=0.05`). Optimal validation performance was reached at **Epoch 46**.
+- **Exp9 Baseline**: Trained with Adam (lr = 2 × 10⁻⁴, β₁ = 0.5, β₂ = 0.999, batch size 64, image size 128, local normalization, `lambda_sat=0.05`). Optimal validation performance was reached at **Epoch 46**.
 - **Long Exp9 Continuation**: The training budget was expanded to 250 epochs with patience 100 on GPU. The run triggered early stopping at epoch 130 (84 non-improving epochs); evaluations showed degraded held-out test performance (PSNR: 13.584 dB, SSIM: 0.4493, Saturation ratio: 1.1805) due to late-stage spectral overfitting.
 - **Conclusion**: Long Exp9 was formally rejected. Further increases in training duration are exhausted and not part of the production configuration.
 
@@ -114,16 +114,16 @@ Standardized evaluation across the **1,259 held-out test samples** (`data/landsa
 
 | Metric | Previous Production | Exp9 (Active Production) | Status |
 | :--- | :---: | :---: | :---: |
-| **PSNR (dB)** $\uparrow$ | 11.7138 | **13.7447** | **+2.0309 dB** |
-| **SSIM** $\uparrow$ | 0.3254 | **0.4502** | **+38.35%** |
-| **MAE** $\downarrow$ | 0.2144 | **0.1723** | **-19.64%** |
-| **RMSE** $\downarrow$ | 0.2752 | **0.2217** | **-19.44%** |
-| **SAM (rad)** $\downarrow$ | 0.2187 | **0.1968** | **-10.01%** |
-| **SAM (degrees)** $\downarrow$ | 12.53° | **11.28°** | **-1.25°** |
-| **CIE Lab $\Delta E^*_{ab}$** $\downarrow$ | 27.2355 | **22.5706** | **-17.13%** |
+| **PSNR (dB)** ↑ | 11.7138 | **13.7447** | **+2.0309 dB** |
+| **SSIM** ↑ | 0.3254 | **0.4502** | **+38.35%** |
+| **MAE** ↓ | 0.2144 | **0.1723** | **-19.64%** |
+| **RMSE** ↓ | 0.2752 | **0.2217** | **-19.44%** |
+| **SAM (rad)** ↓ | 0.2187 | **0.1968** | **-10.01%** |
+| **SAM (degrees)** ↓ | 12.53° | **11.28°** | **-1.25°** |
+| **CIE Lab ΔE*ab** ↓ | 27.2355 | **22.5706** | **-17.13%** |
 | **Saturation Ratio** (target 1.0) | 1.1993 | **0.9340** | **+66.88% closer** |
-| **Saturation Deviation** $|R - 1.0|$ $\downarrow$ | 0.1993 | **0.0660** | **-66.88%** |
-| **Histogram Distance** $\downarrow$ | **0.3572** | 0.4607 | Known trade-off (+0.1035) |
+| **Saturation Deviation** \|R − 1.0\| ↓ | 0.1993 | **0.0660** | **-66.88%** |
+| **Histogram Distance** ↓ | **0.3572** | 0.4607 | Known trade-off (+0.1035) |
 
 > **Analysis**: Exp9 improves the principal structural, pixel, spectral, perceptual, and saturation metrics. Histogram distance remains worse than the previous production model.
 
@@ -133,13 +133,13 @@ Standardized evaluation across the **1,259 held-out test samples** (`data/landsa
 
 Downstream object detection performance evaluated with YOLOv8 on the 1,259 held-out test set benchmark:
 
-| Metric | Previous Production | Exp9 (Active Production) | Delta |
-| :--- | :---: | :---: | :---: |
-| **F1 @ IoU 0.25** $\uparrow$ | 0.2992 | **0.3711** | **+0.0719** |
-| **F1 @ IoU 0.50** $\uparrow$ | 0.2835 | **0.3643** | **+0.0808** |
-| **Precision @ 0.25** $\uparrow$ | 0.4176 | **0.4219** | **+0.0043** |
-| **Recall @ 0.25** $\uparrow$ | 0.2331 | **0.3313** | **+0.0982** |
-| **Mean Matched IoU** $\uparrow$ | 0.9977 | **0.9980** | **+0.0003** |
+| Metric                          | Previous Production | Exp9 (Active Production) |    Delta    |
+| :------------------------------ | :-----------------: | :----------------------: | :---------: |
+| **F1 @ IoU 0.25** ↑    |       0.2992        |        **0.3711**        | **+0.0719** |
+| **F1 @ IoU 0.50** ↑    |       0.2835        |        **0.3643**        | **+0.0808** |
+| **Precision @ 0.25** ↑ |       0.4176        |        **0.4219**        | **+0.0043** |
+| **Recall @ 0.25** ↑    |       0.2331        |        **0.3313**        | **+0.0982** |
+| **Mean Matched IoU** ↑ |       0.9977        |        **0.9980**        | **+0.0003** |
 
 Exp9 improved downstream YOLO detection F1 scores across both IoU thresholds.
 
@@ -162,8 +162,9 @@ Band 10 + Band 11 Dual Thermal Input
 ```
 
 ### Validated Whole-Raster Benchmark
-- **Input Scene**: $1002 \times 1001$ pixels dual-band GeoTIFF
-- **Tile Configuration**: $128 \times 128$ tile size, $32\text{ px}$ overlap, $96\text{ px}$ stride
+
+- **Input Scene**: 1002 × 1001 pixels dual-band GeoTIFF
+- **Tile Configuration**: 128 × 128 tile size, 32 px overlap, 96 px stride
 - **Total Tiles Processed**: 121 tiles
 - **End-to-End Latency**: **1.740 s**
 - **Throughput**: **69.5 tiles/sec**
@@ -175,6 +176,7 @@ Band 10 + Band 11 Dual Thermal Input
 ## 🔌 API & Application Services
 
 ### FastAPI Backend (`api/`)
+
 - **Lifecycle**: The production model is lazy-loaded on the first request that needs inference and then reused as a singleton.
 - **Header**: All `/colorize` responses include the telemetry header `X-Model: pix2pix-landsat-exp9-resnet`.
 - **Endpoints**:
@@ -184,7 +186,9 @@ Band 10 + Band 11 Dual Thermal Input
   - `POST /postprocess/clahe` — Adaptive contrast enhancement postprocessing
 
 ### Interactive Web Dashboard (`web/`)
+
 Built with React + Vite:
+
 - Multi-format file ingestion: PNG/JPEG satellite images, dual-band `.npy` arrays, and GeoTIFF files
 - Preset validation scenes (Accra, Abu Dhabi, etc.)
 - Before/after comparison visual slider with synchronized zoom
@@ -212,7 +216,7 @@ InfraNova-AI/
 └── web/             # React 19 + Vite 6 interactive satellite colorization frontend
 ```
 
-*Note: Large model weights (`.pth`), checkpoints, and raw satellite datasets are excluded from Git tracking.*
+_Note: Large model weights (`.pth`), checkpoints, and raw satellite datasets are excluded from Git tracking._
 
 ---
 
@@ -379,7 +383,7 @@ InfraNova AI is deployed and live on **Oracle Cloud Infrastructure (OCI) Always 
 - **Live Service URL**: `https://infranovaai.duckdns.org` (SSL/TLS encrypted via Let's Encrypt)
 - **Interactive OpenAPI Documentation**: `https://infranovaai.duckdns.org/docs`
 - **Compute Instance**: `VM.Standard.A1.Flex` (2 OCPUs, 12 GB RAM, Ubuntu 24.04 Minimal aarch64, 4 KB memory page size)
-- **Zero-Cost Constraint**: Operates strictly within Oracle's Always Free tier ($0 ongoing cloud infrastructure cost)
+- **Zero-Cost Constraint**: Operates strictly within Oracle's Always Free tier (\$0 ongoing cloud infrastructure cost)
 - **Deployment Architecture**:
   - **Reverse Proxy**: Nginx on the host listening on ports 80/443 with automated Certbot TLS termination and DuckDNS dynamic DNS resolution.
   - **Loopback Isolation**: Docker container binds FastAPI exclusively to `127.0.0.1:8000`, serving both REST API endpoints and the pre-built React 19 single-page application.
@@ -421,6 +425,7 @@ Long-training study: COMPLETE
 ## 👥 Authors & Academic Citation
 
 ### Research Authors
+
 - **Soham Deshpande**
 - **Atharva Lingayat**
 - **Lokesh Gakhre**

@@ -426,7 +426,7 @@ See `docs/project/ROLLBACK.md` for the rollback ledger and artifact roles.
 
 ## 18. Free-Hosting Constraint
 
-The hosting objective for this project is **$0 ongoing cloud resource cost** within Oracle's Always Free allocation.
+The hosting objective for this project is **\$0 ongoing cloud resource cost** within Oracle's Always Free allocation.
 
 Therefore:
 

@@ -16,7 +16,7 @@ The interactive web frontend for **InfraNova AI**, built with **React 19** and *
   - 🌲 **River Basin**: Adilabad, India (`adilabad_thermal.tif`)
   - 🏙️ **Urban Plateau**: Abuja, Nigeria (`abuja_thermal.tif`)
 - **Test-Time Augmentation (TTA)**: Toggle 4-fold geometric transformation averaging (original, horizontal flip, vertical flip, combined) for maximum reconstruction fidelity.
-- **CLAHE Post-Processing**: Dynamic Contrast-Limited Adaptive Histogram Equalization executed server-side in CIELAB color space ($L^*$ channel only), enhancing visual contrast without altering color chromaticity.
+- **CLAHE Post-Processing**: Dynamic Contrast-Limited Adaptive Histogram Equalization executed server-side in CIELAB color space (L* channel only), enhancing visual contrast without altering color chromaticity.
 - **Multi-Format Ingestion**: Drag-and-drop or file-picker upload supporting GeoTIFF (`.tif`, `.tiff`), PNG, JPEG, and NumPy `.npy` dual-band rasters.
 - **Live Telemetry & Diagnostics**: Real-time display of backend connectivity, inference latency (`X-Inference-Time`), active model identifier (`X-Model`), raster dimensions, and 1-click PNG download.
 - **Theming & Design System**: Dark Cosmic (default) and High-Contrast Light modes persisted to `localStorage`, with smooth CSS transitions and bespoke glassmorphism.
